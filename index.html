@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Portfolio Vault</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:#f5f5f7;background:#0b0b0f}
+*{box-sizing:border-box}body{margin:0;background:#0b0b0f}button,input,select{font:inherit}
+main{max-width:760px;margin:auto;padding:env(safe-area-inset-top) 16px calc(86px + env(safe-area-inset-bottom))}
+header{padding:22px 2px 12px;display:flex;justify-content:space-between;align-items:center}h1{font-size:28px;margin:0}.muted{color:#9a9aa3}
+.card{background:#17171d;border:1px solid #28282f;border-radius:20px;padding:18px;margin:12px 0}
+.big{font-size:34px;font-weight:750;margin:4px 0 8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:#202027;border-radius:16px;padding:14px}.metric b{display:block;font-size:20px;margin-top:4px}
+nav{position:fixed;bottom:0;left:0;right:0;padding:8px max(12px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));background:#121218ee;backdrop-filter:blur(18px);display:flex;justify-content:center;gap:6px;border-top:1px solid #292930;z-index:5}nav button{flex:1;max-width:170px;background:none;color:#aaa;border:0;padding:9px 4px;border-radius:12px}nav button.active{background:#292930;color:white}
+.view{display:none}.view.active{display:block}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.pill{font-size:12px;padding:5px 9px;border-radius:999px;background:#292930;color:#ccc}
+button.primary{width:100%;padding:13px;border:0;border-radius:14px;background:#fff;color:#000;font-weight:700}button.secondary{padding:9px 12px;border:1px solid #3a3a43;background:#202027;color:#fff;border-radius:12px}
+.listitem{padding:14px 0;border-bottom:1px solid #292930}.listitem:last-child{border-bottom:0}
+input,select{width:100%;background:#111116;color:#fff;border:1px solid #3a3a43;border-radius:12px;padding:11px;margin:5px 0 10px}label{font-size:13px;color:#aaa}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:end;z-index:10}.modal.show{display:flex}.sheet{width:100%;max-height:90vh;overflow:auto;background:#17171d;border-radius:24px 24px 0 0;padding:20px 16px calc(28px + env(safe-area-inset-bottom))}
+h2{margin:0 0 14px}.danger{color:#ff6b6b}.positive{color:#62d98b}.negative{color:#ff7070}
+.bar{height:8px;background:#292930;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:#ddd}
+.lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;text-align:center}.lock .card{width:100%;max-width:420px}
+</style>
+</head>
+<body>
+<div id="lock" class="lock">
+  <div class="card">
+    <div style="font-size:54px">🔐</div>
+    <h1>Portfolio Vault</h1>
+    <p class="muted">Il tuo portafoglio, offline e solo sul tuo iPhone.</p>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN del vault">
+    <button class="primary" id="unlock">Sblocca / crea vault</button>
+    <p class="muted" style="font-size:12px;margin-top:14px">Il PIN non viene inviato a Internet. I dati del vault sono cifrati localmente.</p>
+  </div>
+</div>
+
+<main id="app" style="display:none">
+<header><div><div class="muted" style="font-size:13px">PORTFOLIO VAULT</div><h1>Il mio portafoglio</h1></div><button class="secondary" id="lockBtn">🔒</button></header>
+
+<section id="dashboard" class="view active">
+<div class="card"><div class="muted">Patrimonio attuale</div><div class="big" id="total">€0,00</div><div id="profit"></div></div>
+<div class="grid">
+<div class="metric"><span class="muted">Investito</span><b id="invested">€0,00</b></div>
+<div class="metric"><span class="muted">P/L</span><b id="pl">€0,00</b></div>
+<div class="metric"><span class="muted">Entrate investimenti</span><b id="income">€0,00</b></div>
+<div class="metric"><span class="muted">Posizioni</span><b id="count">0</b></div>
+</div>
+<div class="card"><div class="row"><h2>Asset allocation</h2></div><div id="allocation"></div></div>
+<div class="card"><div class="row"><h2>Azioni rapide</h2></div><button class="primary" onclick="openMovement()">＋ Nuovo movimento</button></div>
+</section>
+
+<section id="positions" class="view"><div class="row"><h2>Posizioni</h2><button class="secondary" onclick="openPosition()">＋</button></div><div id="positionList"></div></section>
+<section id="movements" class="view"><div class="row"><h2>Movimenti</h2><button class="secondary" onclick="openMovement()">＋</button></div><div id="movementList"></div></section>
+<section id="years" class="view"><div class="row"><h2>Storico annuale</h2><select id="yearSelect" style="width:auto;margin:0"></select></div><div id="yearSummary" class="card"></div><div class="card"><h2>Snapshot patrimonio</h2><button class="primary" onclick="snapshot()">Salva snapshot di oggi</button><div id="snapshots"></div></div></section>
+<section id="settings" class="view"><h2>Sicurezza e dati</h2><div class="card"><p><b>Offline-first</b></p><p class="muted">Nessun account, nessun server e nessun collegamento a banca, broker o Trusters.</p><button class="secondary" onclick="exportBackup()">Esporta backup cifrato</button> <button class="secondary" onclick="document.getElementById('restore').click()">Ripristina</button><input id="restore" type="file" accept=".pvault" hidden></div><div class="card"><p><b>Blocco</b></p><p class="muted">L'app si blocca quando chiudi la sessione. Su iPhone puoi anche bloccare lo schermo normalmente.</p><button class="secondary" onclick="lock()">Blocca vault</button></div><div class="card"><p class="danger"><b>Zona pericolosa</b></p><button class="secondary" onclick="wipe()">Cancella tutti i dati</button></div></section>
+</main>
+
+<nav id="nav" style="display:none">
+<button data-v="dashboard" class="active">⌂<br><small>Home</small></button>
+<button data-v="positions">▣<br><small>Posizioni</small></button>
+<button data-v="movements">↔<br><small>Movimenti</small></button>
+<button data-v="years">◷<br><small>Anni</small></button>
+<button data-v="settings">⚙<br><small>Altro</small></button>
+</nav>
+
+<div id="modal" class="modal"><div class="sheet"><div class="row"><h2 id="modalTitle"></h2><button class="secondary" onclick="closeModal()">Chiudi</button></div><div id="modalBody"></div></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

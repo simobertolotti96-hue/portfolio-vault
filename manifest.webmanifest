@@ -1,0 +1,10 @@
+{
+  "name":"Portfolio Vault",
+  "short_name":"Portfolio Vault",
+  "start_url":"./index.html",
+  "display":"standalone",
+  "background_color":"#0b0b0f",
+  "theme_color":"#0b0b0f",
+  "lang":"it-IT",
+  "description":"Tracker offline cifrato per investimenti personali."
+}

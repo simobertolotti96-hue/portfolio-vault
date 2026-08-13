@@ -192,4 +192,67 @@ async function importBackup(e){const f=e.target.files[0];if(!f)return;const text
 function wipeAll(){if(confirm("ATTENZIONE: cancellerai definitivamente i dati locali. Hai un backup?")){localStorage.removeItem(STORE);localStorage.removeItem("portfolio_vault_v1");sessionStorage.clear();location.reload()}}
 
 </script>
+
+<script>
+/* V4 FIX — authentication gate */
+(function(){
+  window.vaultUnlocked = false;
+
+  window.v4Unlock = async function(){
+    const pinEl = document.getElementById("pin") || document.querySelector('input[type="password"]');
+    const pin = pinEl ? pinEl.value : "";
+    if(!pin){ alert("Inserisci il PIN."); return; }
+
+    try{
+      const stored = localStorage.getItem("portfolioVault");
+      if(stored){
+        if(typeof decrypt !== "function") throw new Error("Vault engine non disponibile");
+        const candidate = await decrypt(stored, pin);
+        if(!candidate || typeof candidate !== "object") throw new Error("Vault non valido");
+        window.db = candidate;
+        db.positions = Array.isArray(db.positions) ? db.positions : [];
+        db.transactions = Array.isArray(db.transactions) ? db.transactions : [];
+        db.snapshots = Array.isArray(db.snapshots) ? db.snapshots : [];
+        db.positions.forEach(p => { if(p.target == null) p.target = 0; });
+      } else {
+        window.db = {positions:[],transactions:[],snapshots:[]};
+        if(typeof persist === "function") await persist(pin);
+      }
+      window.vaultUnlocked = true;
+      if(typeof closeLogin === "function") closeLogin();
+      if(typeof render === "function") render();
+    }catch(e){
+      window.vaultUnlocked = false;
+      alert("PIN errato oppure vault non valido. Nessun dato è stato modificato.");
+    }
+  };
+
+  window.requireUnlocked = function(){
+    if(window.vaultUnlocked !== true){
+      alert("Vault bloccato. Inserisci prima il PIN corretto.");
+      return false;
+    }
+    return true;
+  };
+})();
+</script>
+
 </body></html>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const candidates = [
+    document.getElementById("unlockBtn"),
+    document.querySelector('button[onclick*="unlock"]'),
+    document.querySelector('button[type="submit"]')
+  ].filter(Boolean);
+  const b = candidates[0];
+  if(b) {
+    b.addEventListener("click", function(ev){
+      if(typeof window.v4Unlock === "function"){
+        ev.preventDefault();
+        window.v4Unlock();
+      }
+    }, true);
+  }
+});
+</script>

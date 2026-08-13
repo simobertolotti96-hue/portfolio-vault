@@ -3,73 +3,305 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0b0f">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Portfolio Vault</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0b1020">
+<title>Portfolio Vault V3 — Offline Investment Tracker</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:#f5f5f7;background:#0b0b0f}
-*{box-sizing:border-box}body{margin:0;background:#0b0b0f}button,input,select{font:inherit}
-main{max-width:760px;margin:auto;padding:env(safe-area-inset-top) 16px calc(86px + env(safe-area-inset-bottom))}
-header{padding:22px 2px 12px;display:flex;justify-content:space-between;align-items:center}h1{font-size:28px;margin:0}.muted{color:#9a9aa3}
-.card{background:#17171d;border:1px solid #28282f;border-radius:20px;padding:18px;margin:12px 0}
-.big{font-size:34px;font-weight:750;margin:4px 0 8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:#202027;border-radius:16px;padding:14px}.metric b{display:block;font-size:20px;margin-top:4px}
-nav{position:fixed;bottom:0;left:0;right:0;padding:8px max(12px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));background:#121218ee;backdrop-filter:blur(18px);display:flex;justify-content:center;gap:6px;border-top:1px solid #292930;z-index:5}nav button{flex:1;max-width:170px;background:none;color:#aaa;border:0;padding:9px 4px;border-radius:12px}nav button.active{background:#292930;color:white}
-.view{display:none}.view.active{display:block}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.pill{font-size:12px;padding:5px 9px;border-radius:999px;background:#292930;color:#ccc}
-button.primary{width:100%;padding:13px;border:0;border-radius:14px;background:#fff;color:#000;font-weight:700}button.secondary{padding:9px 12px;border:1px solid #3a3a43;background:#202027;color:#fff;border-radius:12px}
-.listitem{padding:14px 0;border-bottom:1px solid #292930}.listitem:last-child{border-bottom:0}
-input,select{width:100%;background:#111116;color:#fff;border:1px solid #3a3a43;border-radius:12px;padding:11px;margin:5px 0 10px}label{font-size:13px;color:#aaa}
-.modal{position:fixed;inset:0;background:#000a;display:none;align-items:end;z-index:10}.modal.show{display:flex}.sheet{width:100%;max-height:90vh;overflow:auto;background:#17171d;border-radius:24px 24px 0 0;padding:20px 16px calc(28px + env(safe-area-inset-bottom))}
-h2{margin:0 0 14px}.danger{color:#ff6b6b}.positive{color:#62d98b}.negative{color:#ff7070}
-.bar{height:8px;background:#292930;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:#ddd}
-.lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;text-align:center}.lock .card{width:100%;max-width:420px}
+:root{--bg:#f5f7fb;--card:#fff;--text:#121826;--muted:#667085;--line:#e6e9ef;--accent:#4f46e5;--good:#0f9d58;--bad:#d92d20;--dark:#0b1020}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--dark);color:white;padding:20px 18px 16px;position:sticky;top:0;z-index:10}
+.headerrow{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-size:21px;font-weight:800}.secure{font-size:12px;background:#17213d;padding:7px 10px;border-radius:999px;color:#b9c5ff}
+nav{display:flex;gap:7px;overflow:auto;margin-top:16px}nav button{border:0;background:#17213d;color:#cbd3e8;padding:9px 12px;border-radius:10px;white-space:nowrap;font-weight:650}nav button.active{background:white;color:#111827}
+main{max-width:1100px;margin:auto;padding:18px}.tab{display:none}.tab.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 8px #10182808}.label{font-size:12px;color:var(--muted);font-weight:650}.value{font-size:25px;font-weight:800;margin-top:6px}.sub{font-size:12px;color:var(--muted);margin-top:5px}.good{color:var(--good)}.bad{color:var(--bad)}
+.section{margin-top:18px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}h2{font-size:18px;margin:0}button.primary,button.secondary,button.danger{border:0;border-radius:10px;padding:10px 13px;font-weight:750;cursor:pointer}.primary{background:var(--accent);color:white}.secondary{background:#eef0f6;color:#25304a}.danger{background:#fff0ef;color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:11px;text-transform:uppercase}
+.tablewrap{overflow:auto}.empty{padding:28px;text-align:center;color:var(--muted)}
+form{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:#475467}.field input,.field select{width:100%;padding:10px;border:1px solid #d8dde7;border-radius:9px;background:white;font:inherit}.full{grid-column:1/-1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.bar{height:12px;background:#edf0f5;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.alloc{display:grid;gap:12px}.allocrow{display:grid;grid-template-columns:130px 1fr 70px;gap:10px;align-items:center;font-size:13px}
+.note{background:#fff9e8;border:1px solid #f6df9b;padding:12px;border-radius:12px;color:#6b5415;font-size:13px}
+.lock{position:fixed;inset:0;background:var(--dark);color:white;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}.lockbox{width:min(390px,100%);background:#121a31;padding:24px;border-radius:20px}.lockbox input{width:100%;padding:13px;border-radius:10px;border:1px solid #33415f;background:#0c1326;color:white;font-size:20px;letter-spacing:5px;text-align:center;margin:15px 0}.lockbox button{width:100%;padding:12px;border:0;border-radius:10px;background:white;font-weight:800}.small{font-size:12px;color:#aeb9d1;line-height:1.5}.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:18px;z-index:50}.modal.show{display:flex}.modalbox{background:white;border-radius:18px;padding:18px;width:min(700px,100%);max-height:90vh;overflow:auto}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}form{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.value{font-size:20px}form{grid-template-columns:1fr}.allocrow{grid-template-columns:95px 1fr 55px}}
 </style>
 </head>
 <body>
 <div id="lock" class="lock">
-  <div class="card">
-    <div style="font-size:54px">🔐</div>
-    <h1>Portfolio Vault</h1>
-    <p class="muted">Il tuo portafoglio, offline e solo sul tuo iPhone.</p>
-    <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN del vault">
-    <button class="primary" id="unlock">Sblocca / crea vault</button>
-    <p class="muted" style="font-size:12px;margin-top:14px">Il PIN non viene inviato a Internet. I dati del vault sono cifrati localmente.</p>
-  </div>
+ <div class="lockbox">
+  <div style="font-size:26px;font-weight:850">🔐 Portfolio Vault</div>
+  <p class="small" id="lockText">App offline. I dati restano nel browser/dispositivo. Imposta un PIN per cifrare il vault.</p>
+  <input id="pin" inputmode="numeric" maxlength="12" type="password" placeholder="PIN">
+  <button id="unlockBtn">Sblocca / Crea vault</button>
+  <p class="small" style="margin-top:12px">Se dimentichi il PIN, non esiste un recupero: è una scelta intenzionale per non avere una chiave master online.</p>
+ </div>
 </div>
 
-<main id="app" style="display:none">
-<header><div><div class="muted" style="font-size:13px">PORTFOLIO VAULT</div><h1>Il mio portafoglio</h1></div><button class="secondary" id="lockBtn">🔒</button></header>
+<header>
+ <div class="headerrow"><div class="brand">📊 Portfolio Vault V3</div><div class="secure">● OFFLINE · LOCALE</div></div>
+ <nav>
+  <button class="nav active" data-tab="dashboard">Dashboard</button>
+  <button class="nav" data-tab="positions">Posizioni</button>
+  <button class="nav" data-tab="transactions">Movimenti</button>
+  <button class="nav" data-tab="analysis">Analisi</button>
+  <button class="nav" data-tab="history">Storico</button><button class="nav" data-tab="backup">Sicurezza</button>
+ </nav>
+</header>
 
-<section id="dashboard" class="view active">
-<div class="card"><div class="muted">Patrimonio attuale</div><div class="big" id="total">€0,00</div><div id="profit"></div></div>
-<div class="grid">
-<div class="metric"><span class="muted">Investito</span><b id="invested">€0,00</b></div>
-<div class="metric"><span class="muted">P/L</span><b id="pl">€0,00</b></div>
-<div class="metric"><span class="muted">Entrate investimenti</span><b id="income">€0,00</b></div>
-<div class="metric"><span class="muted">Posizioni</span><b id="count">0</b></div>
+<main>
+<div class="card note" style="margin-bottom:14px">
+<b>V3 — cronologia investimenti:</b> PAC/acquisti multipli, vendite parziali/totali e rimborsi sono gestiti come operazioni. Il prezzo medio viene ricalcolato con il costo medio ponderato e il P/L realizzato viene archiviato per anno.
 </div>
-<div class="card"><div class="row"><h2>Asset allocation</h2></div><div id="allocation"></div></div>
-<div class="card"><div class="row"><h2>Azioni rapide</h2></div><button class="primary" onclick="openMovement()">＋ Nuovo movimento</button></div>
+<section id="dashboard" class="tab active">
+ <div class="grid">
+  <div class="card"><div class="label">Patrimonio</div><div id="total" class="value">€0</div><div class="sub">valore attuale</div></div>
+  <div class="card"><div class="label">Capitale investito</div><div id="invested" class="value">€0</div><div class="sub">acquisti netti</div></div>
+  <div class="card"><div class="label">P/L</div><div id="pl" class="value">€0</div><div id="plpct" class="sub">0,00%</div></div>
+  <div class="card"><div class="label">Cash</div><div id="cash" class="value">€0</div><div class="sub">liquidità registrata</div></div>
+ </div>
+ <div class="section"><div class="sectionhead"><h2>Asset allocation</h2></div><div class="card"><div id="allocation" class="alloc"><div class="empty">Nessuna posizione.</div></div></div></div>
+ <div class="section"><div class="sectionhead"><h2>Posizioni principali</h2><button class="primary" onclick="openPosition()">+ Posizione</button></div><div class="card tablewrap"><table><thead><tr><th>Strumento</th><th>Categoria</th><th>Valore</th><th>P/L</th><th>Peso</th></tr></thead><tbody id="topPositions"></tbody></table></div></div>
 </section>
 
-<section id="positions" class="view"><div class="row"><h2>Posizioni</h2><button class="secondary" onclick="openPosition()">＋</button></div><div id="positionList"></div></section>
-<section id="movements" class="view"><div class="row"><h2>Movimenti</h2><button class="secondary" onclick="openMovement()">＋</button></div><div id="movementList"></div></section>
-<section id="years" class="view"><div class="row"><h2>Storico annuale</h2><select id="yearSelect" style="width:auto;margin:0"></select></div><div id="yearSummary" class="card"></div><div class="card"><h2>Snapshot patrimonio</h2><button class="primary" onclick="snapshot()">Salva snapshot di oggi</button><div id="snapshots"></div></div></section>
-<section id="settings" class="view"><h2>Sicurezza e dati</h2><div class="card"><p><b>Offline-first</b></p><p class="muted">Nessun account, nessun server e nessun collegamento a banca, broker o Trusters.</p><button class="secondary" onclick="exportBackup()">Esporta backup cifrato</button> <button class="secondary" onclick="document.getElementById('restore').click()">Ripristina</button><input id="restore" type="file" accept=".pvault" hidden></div><div class="card"><p><b>Blocco</b></p><p class="muted">L'app si blocca quando chiudi la sessione. Su iPhone puoi anche bloccare lo schermo normalmente.</p><button class="secondary" onclick="lock()">Blocca vault</button></div><div class="card"><p class="danger"><b>Zona pericolosa</b></p><button class="secondary" onclick="wipe()">Cancella tutti i dati</button></div></section>
+<section id="positions" class="tab">
+ <div class="sectionhead"><h2>Posizioni</h2><button class="primary" onclick="openPosition()">+ Aggiungi</button></div>
+ <div class="card tablewrap"><table><thead><tr><th>Strumento</th><th>Categoria</th><th>Quantità</th><th>PMC</th><th>Prezzo</th><th>Valore</th><th>P/L</th><th></th></tr></thead><tbody id="positionsTable"></tbody></table></div>
+</section>
+
+<section id="transactions" class="tab">
+ <div class="sectionhead"><h2>Movimenti</h2><button class="primary" onclick="openTransaction()">+ Movimento</button></div>
+ <div class="card tablewrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Strumento</th><th>Importo</th><th>Note</th><th></th></tr></thead><tbody id="transactionsTable"></tbody></table></div>
+</section>
+
+<section id="analysis" class="tab">
+ <div class="grid">
+  <div class="card"><div class="label">Numero posizioni</div><div id="npos" class="value">0</div></div>
+  <div class="card"><div class="label">Cashflow netto</div><div id="netflow" class="value">€0</div></div>
+  <div class="card"><div class="label">Interessi/cedole</div><div id="income" class="value">€0</div></div>
+  <div class="card"><div class="label">Crowdfunding</div><div id="crowd" class="value">€0</div></div>
+ </div>
+ <div class="section"><div class="card"><h2>Scadenze</h2><div id="maturities" class="empty">Aggiungi scadenze alle posizioni per vederle qui.</div></div></div>
+ <div class="section"><div class="note"><b>Nota:</b> la V1 calcola correttamente patrimonio, capitale investito, P/L e allocation a partire dai dati inseriti. TWR/XIRR saranno aggiunti nella prossima iterazione insieme alla gestione completa dei cashflow.</div></div>
+
+<section id="history" class="tab">
+ <div class="section"><div class="sectionhead"><h2>Storico annuale</h2></div>
+ <div class="card">
+  <div class="grid">
+   <div class="card"><div class="label">P/L realizzato anno selezionato</div><div id="yearPL" class="value">€0</div></div>
+   <div class="card"><div class="label">Proventi anno</div><div id="yearIncome" class="value">€0</div></div>
+   <div class="card"><div class="label">Versamenti anno</div><div id="yearDeposits" class="value">€0</div></div>
+   <div class="card"><div class="label">Prelievi anno</div><div id="yearWithdrawals" class="value">€0</div></div>
+  </div>
+  <div class="field"><label>Anno</label><select id="yearSelect"></select></div>
+  <div id="annualTable" style="margin-top:12px"></div>
+ </div></div>
+ <div class="section"><div class="card"><h2>Asset allocation totale</h2><div id="v3Allocation" class="alloc"></div></div></div>
+ <div class="section"><div class="card"><h2>ETF + Azioni · attuale vs riferimento</h2><div id="equityAllocation" class="alloc"></div></div></div>
+ <div class="section"><div class="card"><h2>Patrimonio ex-Trusters</h2><canvas id="wealthChart" width="900" height="230"></canvas><div class="actions"><button class="secondary" onclick="v3Snapshot()">+ Snapshot oggi</button></div></div></div>
+</section>
+
+<section id="backup" class="tab">
+ <div class="section"><h2>Sicurezza & backup</h2></div>
+ <div class="card section">
+  <p><b>🔐 Vault locale cifrato</b></p>
+  <p class="small" style="color:#667085">Il database applicativo viene salvato come payload cifrato con AES-GCM e chiave derivata dal PIN tramite PBKDF2. Non viene inviato a server.</p>
+  <div class="actions">
+   <button class="primary" onclick="exportBackup()">Esporta backup cifrato</button>
+   <button class="secondary" onclick="document.getElementById('importFile').click()">Importa backup</button>
+   <input id="importFile" type="file" accept=".pvault,.json" hidden onchange="importBackup(event)">
+   <button class="danger" onclick="wipeAll()">Cancella tutti i dati</button>
+  </div>
+ </div>
+ <div class="card section"><b>V3 sicurezza</b><p class="small" style="color:#667085">MFA non è incluso in questa release. Il vault resta offline e cifrato; Face ID/passkey sarà aggiunto in una fase dedicata dopo la validazione della logica contabile.</p></div>
+  <div class="card section"><b>Privacy</b><p class="small" style="color:#667085">Nessun conto, password bancaria, IBAN o credenziale finanziaria viene richiesto. Questa V1 non effettua connessioni a broker, banche o piattaforme di crowdfunding.</p></div>
+</section>
 </main>
 
-<nav id="nav" style="display:none">
-<button data-v="dashboard" class="active">⌂<br><small>Home</small></button>
-<button data-v="positions">▣<br><small>Posizioni</small></button>
-<button data-v="movements">↔<br><small>Movimenti</small></button>
-<button data-v="years">◷<br><small>Anni</small></button>
-<button data-v="settings">⚙<br><small>Altro</small></button>
-</nav>
+<div id="posModal" class="modal"><div class="modalbox">
+ <h2 id="posTitle">Nuova posizione</h2><form id="posForm">
+  <input id="posId" type="hidden">
+  <div class="field"><label>Nome</label><input id="posName" required placeholder="es. BTP 2030"></div>
+  <div class="field"><label>Categoria</label><select id="posCat"><option>PAC / ETF</option><option>Obbligazioni</option><option>Crowdfunding</option><option>Azioni</option><option>Crypto</option><option>Liquidità</option><option>Altro</option></select></div>
+  <div class="field"><label>Ticker / ISIN</label><input id="posCode" placeholder="opzionale"></div>
+  <div class="field"><label>Quantità</label><input id="posQty" type="number" step="any" value="1"></div>
+  <div class="field"><label>Prezzo medio di carico</label><input id="posAvg" type="number" step="any" value="0"></div>
+  <div class="field"><label>Prezzo/valore attuale</label><input id="posPrice" type="number" step="any" value="0"></div>
+  <div class="field"><label>Scadenza</label><input id="posDate" type="date"></div>
+  <div class="field"><label>Rendimento previsto %</label><input id="posRate" type="number" step="any" value="0"></div>
+<div class="field"><label>Allocazione target % (ETF/Azioni)</label><input id="posTarget" type="number" step="0.1" value="0"></div>
+  <div class="field full"><label>Note</label><input id="posNote" placeholder="opzionale"></div>
+  <div class="actions full"><button type="submit" class="primary">Salva</button><button type="button" class="secondary" onclick="closeModal('posModal')">Annulla</button></div>
+ </form></div></div>
 
-<div id="modal" class="modal"><div class="sheet"><div class="row"><h2 id="modalTitle"></h2><button class="secondary" onclick="closeModal()">Chiudi</button></div><div id="modalBody"></div></div></div>
+<div id="txModal" class="modal"><div class="modalbox">
+ <h2>Nuovo movimento</h2><form id="txForm">
+  <div class="field"><label>Data</label><input id="txDate" type="date" required></div>
+  <div class="field"><label>Tipo</label><select id="txType"><option>Acquisto</option><option>Vendita</option><option>Rimborso</option><option>Versamento</option><option>Prelievo</option><option>Cedola</option><option>Dividendo</option><option>Interessi</option><option>Commissione</option></select></div>
+<div class="field"><label>Quantità (per acquisto/vendita/rimborso)</label><input id="txQty" type="number" step="any" value="0"></div>
+<div class="field"><label>Prezzo unitario</label><input id="txPrice" type="number" step="any" value="0"></div>
+  <div class="field"><label>Strumento</label><input id="txAsset" placeholder="es. BTP 2030"></div>
+  <div class="field"><label>Importo €</label><input id="txAmount" type="number" step="any" required></div>
+  <div class="field full"><label>Note</label><input id="txNote"></div>
+  <div class="actions full"><button type="submit" class="primary">Salva</button><button type="button" class="secondary" onclick="closeModal('txModal')">Annulla</button></div>
+ </form></div></div>
 
-<script src="app.js"></script>
-</body>
-</html>
+<script>
+const STORE="portfolio_vault_v1";
+let db={positions:[],transactions:[],snapshots:[]}, salt=null;
+
+const €=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",maximumFractionDigits:2}).format(Number(n)||0);
+const pct=n=>(Number(n)||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
+function enc(s){return btoa(unescape(encodeURIComponent(s)))} function dec(s){return decodeURIComponent(escape(atob(s)))}
+async function keyFromPin(pin, s){
+ const raw=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveKey"]);
+ return crypto.subtle.deriveKey({name:"PBKDF2",salt:s,iterations:250000,hash:"SHA-256"},raw,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function encrypt(obj,pin){
+ const s=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
+ const k=await keyFromPin(pin,s), data=new TextEncoder().encode(JSON.stringify(obj));
+ const c=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,data);
+ return JSON.stringify({v:1,s:enc(String.fromCharCode(...s)),i:enc(String.fromCharCode(...iv)),c:enc(String.fromCharCode(...new Uint8Array(c)))});
+}
+async function decrypt(payload,pin){
+ const x=JSON.parse(payload), s=Uint8Array.from(dec(x.s),c=>c.charCodeAt(0)), iv=Uint8Array.from(dec(x.i),c=>c.charCodeAt(0)), c=Uint8Array.from(dec(x.c),c=>c.charCodeAt(0));
+ const k=await keyFromPin(pin,s), p=await crypto.subtle.decrypt({name:"AES-GCM",iv},k,c);
+ return JSON.parse(new TextDecoder().decode(p));
+}
+function save(){localStorage.setItem(STORE, window._encrypted||"")}
+async function persist(){
+ const pin=sessionStorage.getItem("pv_pin");
+ window._encrypted=await encrypt(db,pin); save();
+}
+async function unlock(){
+ const pin=document.getElementById("pin").value.trim(); if(pin.length<6){alert("Usa almeno 6 cifre.");return}
+ try{
+  const stored=localStorage.getItem(STORE);
+  if(stored){db=await decrypt(stored,pin);db.positions=db.positions||[];db.transactions=db.transactions||[];db.snapshots=db.snapshots||[];db.positions.forEach(p=>{p.target=p.target||0})}
+  else{db={positions:[],transactions:[]};window._encrypted=await encrypt(db,pin);save()}
+  sessionStorage.setItem("pv_pin",pin);document.getElementById("lock").style.display="none";render();
+ }catch(e){alert("PIN errato o vault non valido.");}
+}
+document.getElementById("unlockBtn").onclick=unlock;
+document.getElementById("pin").addEventListener("keydown",e=>{if(e.key==="Enter")unlock()});
+
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.tab).classList.add("active");render()});
+function openPosition(id){
+ document.getElementById("posForm").reset();document.getElementById("posId").value="";
+ if(id){let p=db.positions.find(x=>x.id===id);if(!p)return;for(let [k,v] of Object.entries({posId:p.id,posName:p.name,posCat:p.cat,posCode:p.code,posQty:p.qty,posAvg:p.avg,posPrice:p.price,posDate:p.date,posRate:p.rate,posNote:p.note}))document.getElementById(k).value=v??""}
+ document.getElementById("posModal").classList.add("show");
+}
+function openTransaction(){document.getElementById("txForm").reset();txQty.value=0;txPrice.value=0;document.getElementById("txDate").value=new Date().toISOString().slice(0,10);document.getElementById("txModal").classList.add("show")}
+function closeModal(id){document.getElementById(id).classList.remove("show")}
+document.getElementById("posForm").onsubmit=async e=>{
+ e.preventDefault();let id=document.getElementById("posId").value||crypto.randomUUID();
+ let p={id,name:posName.value,cat:posCat.value,code:posCode.value,qty:+posQty.value,avg:+posAvg.value,price:+posPrice.value,date:posDate.value,rate:+posRate.value,target:+posTarget.value||0,note:posNote.value};
+ let i=db.positions.findIndex(x=>x.id===id);if(i>=0)db.positions[i]=p;else db.positions.push(p);await persist();closeModal("posModal");render();
+};
+document.getElementById("txForm").onsubmit=async e=>{
+ e.preventDefault();
+ const type=txType.value, asset=txAsset.value.trim(), qty=+txQty.value||0, price=+txPrice.value||0;
+ const amount=+txAmount.value||0;
+ db.transactions.push({id:crypto.randomUUID(),date:txDate.value,type,asset,qty,price,amount,note:txNote.value});
+ await persist();closeModal("txModal");render();
+};
+async function delPos(id){if(confirm("Eliminare la posizione?")){db.positions=db.positions.filter(x=>x.id!==id);await persist();render()}}
+async function delTx(id){if(confirm("Eliminare il movimento?")){db.transactions=db.transactions.filter(x=>x.id!==id);await persist();render()}}
+function v3Groups(){
+ const by={};
+ for(const p of db.positions){by[p.id]={qty:Number(p.qty)||0,cost:(Number(p.qty)||0)*(Number(p.avg)||0)}}
+ const tx=[...db.transactions].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ const realizedByYear={}, realizedByAsset={};
+ for(const t of tx){
+   if(!["Acquisto","Vendita","Rimborso"].includes(t.type)) continue;
+   let p=db.positions.find(x=>x.name===t.asset || x.code===t.asset || x.id===t.asset);
+   if(!p) continue;
+   const g=by[p.id]||(by[p.id]={qty:0,cost:0});
+   const q=Number(t.qty)||0, pr=Number(t.price)||0, fees=0;
+   if(t.type==="Acquisto"){
+     g.qty+=q; g.cost+=q*pr+fees;
+   }else{
+     const avg=g.qty?g.cost/g.qty:0;
+     const proceeds=t.amount || q*pr;
+     const pl=proceeds-fees-q*avg;
+     const y=new Date(t.date).getFullYear();
+     realizedByYear[y]=(realizedByYear[y]||0)+pl;
+     realizedByAsset[p.id]=(realizedByAsset[p.id]||0)+pl;
+     g.qty=Math.max(0,g.qty-q); g.cost=Math.max(0,g.cost-q*avg);
+   }
+ }
+ return {by,realizedByYear,realizedByAsset};
+}
+function calc(){
+ const g=v3Groups();
+ let total=0, invested=0, cash=0, income=0, crowd=0;
+ db.positions.forEach(p=>{
+   const x=g.by[p.id]||{qty:Number(p.qty)||0,cost:(Number(p.qty)||0)*(Number(p.avg)||0)};
+   const v=x.qty*(Number(p.price)||0);
+   total+=v; invested+=x.cost;
+   if(p.cat==="Liquidità") cash+=v;
+   if(p.cat==="Crowdfunding") crowd+=v;
+ });
+ income=db.transactions.filter(t=>["Cedola","Dividendo","Interessi"].includes(t.type)).reduce((s,t)=>s+(Number(t.amount)||0),0);
+ const realized=Object.values(g.realizedByYear).reduce((s,v)=>s+v,0);
+ return {total,invested,pl:total-invested,realized,cash,income,crowd,g};
+}
+function render(){
+ let c=calc();total.textContent=€(c.total);invested.textContent=€(c.invested);pl.textContent=(c.pl>=0?"+":"")+€(c.pl);pl.className="value "+(c.pl>=0?"good":"bad");plpct.textContent=(c.invested?((c.pl/c.invested)*100).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}):"0,00")+"%";
+ cash.textContent=€(c.cash);npos.textContent=db.positions.length;netflow.textContent=€(db.transactions.reduce((s,t)=>s+((t.type==="Versamento"?1:t.type==="Prelievo"?-1:0)*t.amount),0));income.textContent=€(c.income);crowd.textContent=€(c.crowd);
+ let cats={};db.positions.forEach(p=>cats[p.cat]=(cats[p.cat]||0)+p.qty*p.price);allocation.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="allocrow"><span>${k}</span><div class="bar"><i style="width:${c.total?v/c.total*100:0}%"></i></div><b>${pct(c.total?v/c.total*100:0)}</b></div>`).join("")||'<div class="empty">Nessuna posizione.</div>';
+ let rows=db.positions.slice().sort((a,b)=>b.qty*b.price-a.qty*a.price);
+ topPositions.innerHTML=rows.map(p=>{let v=p.qty*p.price, pl=(p.price-p.avg)*p.qty;return `<tr><td><b>${esc(p.name)}</b><br><small>${esc(p.code||"")}</small></td><td>${esc(p.cat)}</td><td>${€(v)}</td><td class="${pl>=0?"good":"bad"}">${pl>=0?"+":""}${€(pl)}</td><td>${pct(c.total?v/c.total*100:0)}</td></tr>`}).join("")||'<tr><td colspan="5" class="empty">Nessuna posizione.</td></tr>';
+ positionsTable.innerHTML=rows.map(p=>{let v=p.qty*p.price,pl=(p.price-p.avg)*p.qty;return `<tr><td><b>${esc(p.name)}</b><br><small>${esc(p.code||"")}</small></td><td>${esc(p.cat)}</td><td>${p.qty}</td><td>${€(p.avg)}</td><td>${€(p.price)}</td><td>${€(v)}</td><td class="${pl>=0?"good":"bad"}">${pl>=0?"+":""}${€(pl)}</td><td><button class="secondary" onclick="openPosition('${p.id}')">Modifica</button> <button class="danger" onclick="delPos('${p.id}')">×</button></td></tr>`}).join("")||'<tr><td colspan="8" class="empty">Nessuna posizione.</td></tr>';
+ let tx=db.transactions.slice().sort((a,b)=>b.date.localeCompare(a.date));
+ transactionsTable.innerHTML=tx.map(t=>`<tr><td>${esc(t.date)}</td><td>${esc(t.type)}</td><td>${esc(t.asset||"—")}</td><td>${€(t.amount)}</td><td>${esc(t.note||"")}</td><td><button class="danger" onclick="delTx('${t.id}')">×</button></td></tr>`).join("")||'<tr><td colspan="6" class="empty">Nessun movimento.</td></tr>';
+ let mats=db.positions.filter(p=>p.date).sort((a,b)=>a.date.localeCompare(b.date));
+ maturities.innerHTML=mats.map(p=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee"><span>${esc(p.name)}</span><b>${esc(p.date)}</b></div>`).join("")||"Nessuna scadenza registrata.";
+}
+function v3Snapshot(){
+ const c=calc();
+ const ex=db.positions.filter(p=>p.cat!=="Crowdfunding").reduce((s,p)=>{
+   const x=c.g.by[p.id]||{qty:Number(p.qty)||0}; return s+x.qty*(Number(p.price)||0)
+ },0);
+ db.snapshots=db.snapshots||[]; db.snapshots.push({date:new Date().toISOString(),value:ex});
+ persist().then(render);
+}
+function renderV3(){
+ const c=calc(), ys=[...new Set([new Date().getFullYear(),...db.transactions.map(t=>new Date(t.date).getFullYear()),...(db.snapshots||[]).map(s=>new Date(s.date).getFullYear())])].sort((a,b)=>b-a);
+ yearSelect.innerHTML=ys.map(y=>`<option>${y}</option>`).join("");
+ const y=Number(yearSelect.value)||new Date().getFullYear(), r=c.g.realizedByYear[y]||0;
+ const inc=db.transactions.filter(t=>new Date(t.date).getFullYear()===y && ["Cedola","Dividendo","Interessi"].includes(t.type)).reduce((s,t)=>s+(+t.amount||0),0);
+ const dep=db.transactions.filter(t=>new Date(t.date).getFullYear()===y && t.type==="Versamento").reduce((s,t)=>s+(+t.amount||0),0);
+ const wit=db.transactions.filter(t=>new Date(t.date).getFullYear()===y && t.type==="Prelievo").reduce((s,t)=>s+(+t.amount||0),0);
+ yearPL.textContent=(r>=0?"+":"")+€(r); yearIncome.textContent=€(inc); yearDeposits.textContent=€(dep); yearWithdrawals.textContent=€(wit);
+ const cats={}; db.positions.forEach(p=>{const x=c.g.by[p.id]||{qty:+p.qty||0}; cats[p.cat]=(cats[p.cat]||0)+x.qty*(+p.price||0)});
+ const tv=Object.values(cats).reduce((a,b)=>a+b,0);
+ v3Allocation.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="allocrow"><span>${esc(k)}</span><div class="bar"><i style="width:${tv?v/tv*100:0}%"></i></div><b>${pct(tv?v/tv*100:0)}</b></div>`).join("")||'<div class="empty">Nessuna posizione.</div>';
+ const eq=db.positions.filter(p=>["PAC / ETF","Azioni"].includes(p.cat));
+ const et=eq.reduce((s,p)=>{const x=c.g.by[p.id]||{qty:+p.qty||0};return s+x.qty*(+p.price||0)},0);
+ equityAllocation.innerHTML=eq.map(p=>{const x=c.g.by[p.id]||{qty:+p.qty||0};const v=x.qty*(+p.price||0),a=et?v/et*100:0,t=+p.target||0;return `<div class="allocrow"><span>${esc(p.name)}</span><div class="bar"><i style="width:${Math.min(100,a)}%"></i></div><b>${a.toFixed(1)}% / ${t.toFixed(1)}%</b></div>`}).join("")||'<div class="empty">Nessun ETF/Azione.</div>';
+ const rows=Object.entries(c.g.realizedByYear).sort((a,b)=>b[0]-a[0]).map(([yr,val])=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e6e9ef"><span>${yr}</span><b class="${val>=0?"good":"bad"}">${val>=0?"+":""}${€(val)}</b></div>`).join("");
+ annualTable.innerHTML=rows||'<div class="empty">Nessun P/L realizzato.</div>';
+ drawWealth();
+}
+function drawWealth(){
+ const c=wealthChart,ctx=c.getContext("2d"),s=(db.snapshots||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+ ctx.clearRect(0,0,c.width,c.height);
+ if(!s.length){ctx.fillStyle="#667085";ctx.font="14px sans-serif";ctx.fillText("Salva uno snapshot per iniziare lo storico.",20,110);return}
+ const vals=s.map(x=>x.value),mi=Math.min(...vals),ma=Math.max(...vals);
+ ctx.strokeStyle="#4f46e5";ctx.lineWidth=3;ctx.beginPath();
+ s.forEach((z,i)=>{const x=35+i*(c.width-70)/Math.max(1,s.length-1), y=c.height-35-(z.value-mi)/Math.max(1,ma-mi)*(c.height-70);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();
+}
+yearSelect.onchange=renderV3;
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+async function exportBackup(){
+ let pin=sessionStorage.getItem("pv_pin");let payload=await encrypt(db,pin);let blob=new Blob([payload],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="portfolio-vault-backup.pvault";a.click();URL.revokeObjectURL(a.href);
+}
+async function importBackup(e){
+ let f=e.target.files[0];if(!f)return;let text=await f.text(),pin=prompt("Inserisci il PIN del backup");if(!pin)return;
+ try{db=await decrypt(text,pin);await persist();render();alert("Backup importato.");}catch(err){alert("Backup non valido o PIN errato.");}
+ e.target.value="";
+}
+function wipeAll(){if(confirm("ATTENZIONE: cancellerai definitivamente i dati locali. Hai un backup?")){localStorage.removeItem(STORE);sessionStorage.clear();location.reload()}}
+render();
+</script>
+</body></html>

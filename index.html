@@ -1,1 +1,428 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Portfolio Vault V4 — Safe Base</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#121826;--muted:#667085;--line:#e6e9ef;--accent:#4f46e5;--good:#0f9d58;--bad:#d92d20;--dark:#0b1020}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}
+.lock{position:fixed;inset:0;background:var(--dark);color:white;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px}
+.lockbox{width:min(390px,100%);background:#121a31;padding:24px;border-radius:20px}
+.lockbox h1{margin:0 0 8px;font-size:26px}
+.lockbox input{width:100%;padding:13px;border-radius:10px;border:1px solid #33415f;background:#0c1326;color:white;font-size:20px;letter-spacing:5px;text-align:center;margin:15px 0}
+.lockbox button{width:100%;padding:12px;border:0;border-radius:10px;background:white;font-weight:800;cursor:pointer}
+.lockbox .error{min-height:20px;color:#ff9b9b;font-size:13px;margin-top:10px}
+.small{font-size:12px;color:#aeb9d1;line-height:1.5}
+#app{display:none}
+header{background:var(--dark);color:white;padding:20px 18px 16px;position:sticky;top:0;z-index:10}
+.headerrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-size:21px;font-weight:800}
+.secure{font-size:12px;background:#17213d;padding:7px 10px;border-radius:999px;color:#b9c5ff}
+nav{display:flex;gap:7px;overflow:auto;margin-top:16px}
+nav button{border:0;background:#17213d;color:#cbd3e8;padding:9px 12px;border-radius:10px;white-space:nowrap;font-weight:650;cursor:pointer}
+nav button.active{background:white;color:#111827}
+main{max-width:1500px;margin:auto;padding:18px 18px 90px}
+.tab{display:none}.tab.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 8px #10182808}
+.label{font-size:12px;color:var(--muted);font-weight:650}
+.value{font-size:25px;font-weight:800;margin-top:6px}
+.sub{font-size:12px;color:var(--muted);margin-top:5px}
+.good{color:var(--good)}.bad{color:var(--bad)}
+.section{margin-top:18px}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+h2{font-size:18px;margin:0}
+button.primary,button.secondary,button.danger{border:0;border-radius:10px;padding:10px 13px;font-weight:750;cursor:pointer}
+button.primary{background:var(--accent);color:white}
+button.secondary{background:#eef0f6;color:#25304a}
+button.danger{background:#fff0ef;color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);box-sizing:border-box}
+th{color:var(--muted);font-size:11px;text-transform:uppercase}
+.tablewrap{overflow:auto}.empty{padding:28px;text-align:center;color:var(--muted)}
+form{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:#475467}
+.check-field{display:flex;align-items:center;min-height:36px}.check-field label{display:inline-flex;align-items:center;gap:9px;margin:0;font-size:12px;font-weight:700;color:#475467;line-height:1.2}.check-field input[type=checkbox]{display:block;width:16px;height:16px;min-width:16px;margin:0;padding:0;vertical-align:middle;accent-color:var(--accent);}
+.field input,.field select{width:100%;padding:10px;border:1px solid #d8dde7;border-radius:9px;background:white}
+.full{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.modal.show{display:flex}.modalbox{background:white;border-radius:18px;padding:18px;width:min(700px,100%);max-height:90vh;overflow:auto}
+.note{background:#fff9e8;border:1px solid #f6df9b;padding:12px;border-radius:12px;color:#6b5415;font-size:13px}
+.bar{height:12px;background:#edf0f5;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.alloc{display:grid;gap:12px}.allocrow{display:grid;grid-template-columns:130px 1fr 70px;gap:10px;align-items:center;font-size:13px}
+footer{max-width:1500px;margin:0 auto;padding:0 18px 30px;color:var(--muted);font-size:12px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}form{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.value{font-size:20px}form{grid-template-columns:1fr}.allocrow{grid-template-columns:95px 1fr 55px}}
+.taxnote{font-size:12px;color:var(--muted)} .closed{opacity:.62} .pending{opacity:.92} .searchbar{display:flex;gap:8px;margin-bottom:12px}.searchbar input{flex:1} 
 
+</style>
+
+<style>
+.tablewrap{overflow:auto}
+.tablewrap-scroll{max-height:62vh;overflow:auto}
+
+/* One physical table keeps header and body columns perfectly aligned.
+   The thead stays fixed while only the table body scrolls vertically. */
+.position-table-wrap{padding:0;width:100%;max-width:none}
+.position-table-scroll{max-height:62vh;overflow:auto;border-radius:18px;position:relative;width:100%}
+.position-table{width:100%;min-width:1450px;table-layout:fixed;border-collapse:separate;border-spacing:0}
+.position-table thead th{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:#fff;
+  background-clip:padding-box;
+  box-shadow:0 1px 0 var(--line);
+}
+.position-table th,.position-table td{
+  padding-left:12px;
+  padding-right:12px;
+  overflow:visible;
+}
+.position-table th:nth-child(1),.position-table td:nth-child(1){padding-left:12px}
+.position-table th:nth-child(2),.position-table td:nth-child(2){padding-left:16px}
+.position-table th:nth-child(3),.position-table td:nth-child(3){padding-left:16px}
+.position-table th:nth-child(7),.position-table td:nth-child(7){padding-right:16px}
+.position-table th:nth-child(8),.position-table td:nth-child(8){padding-left:16px}
+.position-table tbody tr:last-child td{border-bottom:0}
+.position-table td:nth-child(2),.position-table th:nth-child(2),
+.position-table td:nth-child(3),.position-table th:nth-child(3){white-space:nowrap}
+
+/* Frequent action: keep the Actions column visible while the table moves horizontally. */
+.position-table th:last-child,
+.position-table td:last-child{
+  position:sticky;
+  right:0;
+  z-index:12;
+  background:#fff;
+  box-shadow:-8px 0 10px rgba(20,30,50,.06);
+}
+.position-table thead th:last-child{z-index:20}
+.position-table tbody tr:hover td:last-child{background:#fff}
+.position-table th:last-child{white-space:nowrap}
+.action-menu{position:relative;display:inline-block}
+.action-menu>button{white-space:nowrap}
+.action-menu-list{display:none;position:fixed;min-width:180px;background:#fff;border:1px solid #e1e5ee;border-radius:10px;box-shadow:0 10px 30px rgba(20,30,60,.14);padding:6px;z-index:10000}.action-menu.open .action-menu-list{display:flex;flex-direction:column}.position-table td:last-child.menu-host-open{z-index:1000}
+.action-menu.open .action-menu-list{display:flex;flex-direction:column}
+.action-menu-list button{border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:7px;cursor:pointer;font:inherit}
+.action-menu-list button:hover{background:#f3f4fa}.action-menu-list.action-menu-portal{display:flex!important;flex-direction:column;position:fixed!important;z-index:2147483647!important}
+.readonly-field{background:#f5f6fa;color:#5b6475}
+.calc-field{background:#f5f6fa;font-weight:600}
+</style>
+</head>
+<body>
+
+<div id="lock" class="lock">
+  <div class="lockbox">
+    <div style="font-size:42px">🔐</div>
+    <h1>Portfolio Vault</h1>
+    <p class="small">Base V4 sicura costruita sul motore V3. Il vault esistente non viene ricreato né convertito.</p>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN">
+    <button id="unlockBtn">Sblocca vault</button>
+    <div id="lockError" class="error"></div>
+    <p class="small">Il PIN viene usato localmente per derivare la chiave. Non viene inviato a Internet.</p>
+  </div>
+</div>
+
+<div id="app">
+<header>
+  <div class="headerrow">
+    <div class="brand">📊 Portfolio Vault V4</div>
+    <div class="secure">● VAULT SBLOCCATO</div>
+  </div>
+  <nav id="mainNav">
+    <button class="nav active" data-tab="dashboard">Dashboard</button>
+    <button class="nav" data-tab="positions">Posizioni</button>
+    <button class="nav" data-tab="transactions">Movimenti</button>
+    <button class="nav" data-tab="analysis">Analisi</button>
+    <button class="nav" data-tab="history">Storico</button>
+    <button class="nav" data-tab="tax">Fiscalità</button>
+    <button class="nav" data-tab="backup">Sicurezza</button>
+  </nav>
+</header>
+
+<main>
+<section id="dashboard" class="tab active">
+  <div class="grid">
+    <div class="card"><div class="label">Patrimonio</div><div id="total" class="value">€0</div><div class="sub">valore attuale</div></div>
+    <div class="card"><div class="label">Capitale investito</div><div id="invested" class="value">€0</div><div class="sub">costo storico</div></div>
+    <div class="card"><div class="label">P/L</div><div id="pl" class="value">€0</div><div id="plpct" class="sub">0,00%</div></div>
+    <div class="card"><div class="label">Cash</div><div id="cash" class="value">€0</div><div class="sub">liquidità registrata</div></div>
+  </div>
+  <div class="section">
+    <div class="sectionhead"><h2>Posizioni principali</h2><button class="primary" onclick="openPosition()">+ Posizione</button></div>
+    <div class="card tablewrap"><table><thead><tr><th>Strumento</th><th>Categoria</th><th>Quantità</th><th>PMC</th><th>Prezzo</th><th>Investito</th><th>Controvalore</th><th>P/L non realizzato lordo</th><th>P/L netto previsto</th><th>P/L realizzato</th></tr></thead><tbody id="topPositions"></tbody></table></div>
+  </div>
+  <div class="section">
+    <div class="card"><h2>Asset allocation</h2><div id="allocation" class="alloc" style="margin-top:14px"></div></div>
+  </div>
+</section>
+
+<section id="positions" class="tab">
+  <div class="sectionhead"><h2>Posizioni</h2><button class="primary" onclick="openPosition()">+ Aggiungi</button></div>
+  <div class="searchbar"><input id="positionSearch" placeholder="🔎 Cerca per nome, ticker o ISIN..."><label style="display:flex;align-items:center;gap:6px;white-space:nowrap"><input id="showClosed" type="checkbox"> Mostra chiuse</label></div>
+  <div class="card position-table-wrap">
+    <div class="position-table-scroll">
+      <table class="position-table">
+        <colgroup><col style="width:14%"><col style="width:9%"><col style="width:6%"><col style="width:7%"><col style="width:7%"><col style="width:8%"><col style="width:9%"><col style="width:11%"><col style="width:11%"><col style="width:9%"><col style="width:4%"><col style="width:5%"><col style="width:7%"></colgroup>
+        <thead><tr><th>Strumento</th><th>Categoria</th><th>Quantità</th><th>PMC</th><th>Prezzo</th><th>Investito</th><th>Controvalore</th><th>P/L non realizzato lordo</th><th>P/L netto previsto</th><th>P/L realizzato</th><th>Target</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <tbody id="positionsTable"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="transactions" class="tab">
+  <div class="sectionhead"><h2>Movimenti</h2><button class="primary" onclick="openTransaction()">+ Movimento</button></div>
+    <div class="card tablewrap" style="margin-top:12px"><table><thead><tr><th>Data</th><th>Tipo</th><th>Strumento</th><th>Quantità</th><th>Prezzo</th><th>Importo</th><th></th></tr></thead><tbody id="transactionsTable"></tbody></table></div>
+</section>
+
+<section id="analysis" class="tab">
+  <div class="grid">
+    <div class="card"><div class="label">Numero posizioni</div><div id="npos" class="value">0</div></div>
+    <div class="card"><div class="label">Cashflow netto</div><div id="netflow" class="value">€0</div></div>
+    <div class="card"><div class="label">Interessi / cedole</div><div id="income" class="value">€0</div></div>
+    <div class="card"><div class="label">Crowdfunding</div><div id="crowd" class="value">€0</div></div>
+  </div>
+  <div class="section"><div class="card"><h2>Scadenze</h2><div id="maturities" class="empty">Nessuna scadenza registrata.</div></div></div>
+</section>
+
+<section id="history" class="tab">
+  <div class="sectionhead"><h2>Storico annuale</h2><select id="yearSelect" style="width:auto;margin:0"></select></div>
+  <div class="grid">
+    <div class="card"><div class="label">P/L realizzato</div><div id="yearPL" class="value">€0</div></div>
+    <div class="card"><div class="label">Proventi</div><div id="yearIncome" class="value">€0</div></div>
+    <div class="card"><div class="label">Versamenti</div><div id="yearDeposits" class="value">€0</div></div>
+    <div class="card"><div class="label">Prelievi</div><div id="yearWithdrawals" class="value">€0</div></div>
+  </div>
+  <div class="section"><div class="card"><div id="annualTable"></div></div></div>
+</section>
+
+<section id="tax" class="tab">
+  <div class="sectionhead"><h2>Fiscalità</h2><select id="taxYearSelect" style="width:auto;margin:0"></select></div>
+  <div class="grid">
+    <div class="card"><div class="label">P/L realizzato</div><div id="taxPL" class="value">€0</div></div>
+    <div class="card"><div class="label">Minusvalenze</div><div id="taxLoss" class="value">€0</div></div>
+    <div class="card"><div class="label">Imponibile</div><div id="taxBase" class="value">€0</div></div>
+    <div class="card"><div class="label">Imposta stimata</div><div id="taxDue" class="value">€0</div></div>
+  </div>
+  <div class="section"><div class="card"><h2>Dettaglio fiscale</h2><div id="taxTable"></div><p class="taxnote">Stima informativa basata sui movimenti registrati nel Vault; per il trattamento fiscale definitivo vanno verificati regime fiscale, titolo e documentazione dell'intermediario.</p></div></div>
+</section>
+
+<section id="backup" class="tab">
+  <div class="card">
+    <h2>Sicurezza & backup</h2>
+    <p>Vault locale cifrato con lo stesso formato V3: <b>portfolio_vault_v1</b>, PBKDF2 + AES-GCM.</p>
+    <div class="actions">
+      <button class="primary" onclick="exportBackup()">Esporta backup cifrato</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Importa backup</button>
+      <input id="importFile" type="file" accept=".pvault,.json" hidden onchange="importBackup(event)">
+      <button class="danger" onclick="lockVault()">Blocca vault</button>
+    </div>
+    <div class="note" style="margin-top:12px">La cancellazione del vault non è presente in questa SAFE BASE per evitare reset accidentali durante i test.</div>
+  </div>
+</section>
+</main>
+<footer>Portfolio Vault V4.6.7 · Posizioni + P/L + Fiscalità.</footer>
+</div>
+
+<div id="posModal" class="modal"><div class="modalbox">
+<h2 id="posTitle">Nuova posizione</h2>
+<form id="posForm">
+<input id="posId" type="hidden">
+<div class="field"><label>Nome</label><input id="posName" required placeholder="es. BTP 2030"></div>
+<div class="field"><label>Categoria</label><select id="posCat"><option>ETF</option><option>Obbligazioni</option><option>Crowdfunding</option><option>Azioni</option><option>Crypto</option><option>Liquidità</option><option>Altro</option></select></div>
+<div class="field full check-field" id="advancedEditWrap" style="display:none"><label><input id="advancedEdit" type="checkbox"> <span>Modifica avanzata — consenti modifica dei dati chiave</span></label></div>
+<div class="field" id="posCodeWrap"><label>Ticker / ISIN</label><input id="posCode" placeholder="opzionale"></div>
+<div class="field" id="posPlatformWrap"><label>Piattaforma</label><input id="posPlatform" placeholder="es. Trusters"></div>
+<div class="field" id="posCapitalWrap"><label>Capitale investito €</label><input id="posCapital" type="number" step="any" min="0" value="0"></div>
+<div class="field" id="posQtyWrap"><label>Quantità</label><input id="posQty" type="number" step="any" value="1"></div>
+<div class="field" id="posAvgWrap"><label>Prezzo medio di carico</label><input id="posAvg" type="number" step="any" value="0"></div>
+<div class="field" id="posTaxRateWrap"><label>Aliquota fiscale</label><select id="posTaxRate"><option value="0.125">12,5%</option><option value="0.26">26%</option></select></div>
+<div class="field" id="posCommissionWrap"><label>Commissione iniziale €</label><input id="posCommission" type="number" step="any" min="0" value="0"></div>
+<div class="field"><label>Prezzo/valore attuale</label><input id="posPrice" type="number" step="any" value="0"></div>
+<div class="field"><label>Scadenza</label><input id="posDate" type="date"></div>
+<div class="field" id="posRateWrap"><label>Rendimento previsto %</label><input id="posRate" type="number" step="any" value="0"></div>
+<div class="field" id="posTargetWrap"><label>Allocazione target %</label><input id="posTarget" type="number" step="0.1" value="0"></div>
+<div class="field full"><label>Note</label><input id="posNote" placeholder="opzionale"></div>
+<div class="actions full"><button type="submit" class="primary">Salva</button><button type="button" class="secondary" onclick="closeModal('posModal')">Annulla</button></div>
+</form></div></div>
+
+<div id="txModal" class="modal"><div class="modalbox">
+<h2>Nuovo movimento</h2>
+<form id="txForm">
+<div class="field"><label>Data</label><input id="txDate" type="date" required></div>
+<div class="field"><label>Tipo</label><select id="txType"><option>Acquisto</option><option>Vendita</option><option>Rimborso</option><option>Versamento</option><option>Prelievo</option><option>Cedola</option><option>Dividendo</option></select></div>
+<div class="field"><label>Strumento</label><select id="txAsset"><option value="">Seleziona...</option></select></div>
+<div class="field"><label>Quantità</label><input id="txQty" type="number" step="any" value="0"></div>
+<div class="field"><label>Prezzo unitario</label><input id="txPrice" type="number" step="any" value="0"></div>
+<div class="field"><label>Commissione €</label><input id="txCommission" type="number" step="any" min="0" value="0"></div>
+<div class="field"><label>Importo €</label><input id="txAmount" class="calc-field" type="number" step="any" required></div><input id="txTimestamp" type="hidden">
+<div class="field full"><label>Note</label><input id="txNote"></div>
+<div class="actions full"><button type="submit" class="primary">Salva</button><button type="button" class="secondary" onclick="closeModal('txModal')">Annulla</button></div>
+</form></div></div>
+
+<script>
+const STORE="portfolio_vault_v1";
+let db={positions:[],transactions:[],snapshots:[]};
+
+const eur=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",maximumFractionDigits:2}).format(Number(n)||0);
+const qty=n=>new Intl.NumberFormat("it-IT",{useGrouping:false,maximumFractionDigits:6}).format(Number(n)||0);
+const pct=n=>(Number(n)||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
+
+function enc(s){return btoa(unescape(encodeURIComponent(s)))}
+function dec(s){return decodeURIComponent(escape(atob(s)))}
+
+async function keyFromPin(pin,s){
+  const raw=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2",salt:s,iterations:250000,hash:"SHA-256"},
+    raw,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]
+  );
+}
+
+async function encrypt(obj,pin){
+  const s=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const k=await keyFromPin(pin,s);
+  const data=new TextEncoder().encode(JSON.stringify(obj));
+  const c=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,data);
+  return JSON.stringify({
+    v:1,
+    s:enc(String.fromCharCode(...s)),
+    i:enc(String.fromCharCode(...iv)),
+    c:enc(String.fromCharCode(...new Uint8Array(c)))
+  });
+}
+
+async function decrypt(payload,pin){
+  const x=JSON.parse(payload);
+  if(x.v!==1 || !x.s || !x.i || !x.c) throw new Error("Formato vault non riconosciuto");
+  const s=Uint8Array.from(dec(x.s),c=>c.charCodeAt(0));
+  const iv=Uint8Array.from(dec(x.i),c=>c.charCodeAt(0));
+  const c=Uint8Array.from(dec(x.c),c=>c.charCodeAt(0));
+  const k=await keyFromPin(pin,s);
+  const p=await crypto.subtle.decrypt({name:"AES-GCM",iv},k,c);
+  return JSON.parse(new TextDecoder().decode(p));
+}
+
+function normalizeDb(value){
+  if(!value || typeof value!=="object") throw new Error("Vault non valido");
+  return {
+    positions:Array.isArray(value.positions)?value.positions:[],
+    transactions:Array.isArray(value.transactions)?value.transactions:[],
+    snapshots:Array.isArray(value.snapshots)?value.snapshots:[]
+  };
+}
+
+
+function saveEncrypted(payload){localStorage.setItem(STORE,payload)}
+async function persist(){const pin=sessionStorage.getItem("pv_pin");if(!pin)throw new Error("Vault bloccato");saveEncrypted(await encrypt(db,pin))}
+async function unlock(){const input=document.getElementById("pin"),error=document.getElementById("lockError"),pin=input.value.trim();error.textContent="";if(pin.length<6){error.textContent="Il PIN deve contenere almeno 6 cifre.";return}const stored=localStorage.getItem(STORE);try{let opened;if(stored)opened=await decrypt(stored,pin);else{opened={positions:[],transactions:[],snapshots:[]};saveEncrypted(await encrypt(opened,pin))}db=normalizeDb(opened);sessionStorage.setItem("pv_pin",pin);document.getElementById("lock").style.display="none";document.getElementById("app").style.display="block";render()}catch(e){sessionStorage.removeItem("pv_pin");document.getElementById("app").style.display="none";document.getElementById("lock").style.display="flex";error.textContent="PIN errato oppure vault non valido.";input.focus();input.select()}}
+document.getElementById("unlockBtn").addEventListener("click",unlock);document.getElementById("pin").addEventListener("keydown",e=>{if(e.key==="Enter")unlock()});
+function lockVault(){sessionStorage.removeItem("pv_pin");document.getElementById("app").style.display="none";document.getElementById("lock").style.display="flex";document.getElementById("pin").value="";document.getElementById("lockError").textContent=""}
+document.querySelectorAll(".nav").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.getElementById(btn.dataset.tab).classList.add("active");render()}));
+let txContext={positionId:null,forcedType:null,closePosition:false};
+function openPosition(id){document.getElementById("posForm").reset();posId.value="";posQty.value=1;posAvg.value=0;posCommission.value=0;posPrice.value=0;posCapital.value=0;posPlatform.value="";posRate.value=0;posTarget.value=0;posTaxRate.value="0.125";advancedEdit.checked=false;advancedEditWrap.style.display=id?"block":"none";posTitle.textContent=id?"Modifica posizione":"Nuova posizione";if(id){const p=db.positions.find(x=>x.id===id);if(!p)return;posId.value=p.id;posName.value=p.name||"";posCat.value=p.cat||"Altro";posCode.value=p.code||"";const editState=currentPositionState(p);posQty.value=editState.qty??0;posAvg.value=editState.avg??0;posCommission.value=p.initialCommission??0;posPrice.value=p.price??0;posCapital.value=p.initialCapital??0;posPlatform.value=p.platform||"";posDate.value=p.date||"";posRate.value=p.rate??0;posTarget.value=p.target??0;posTaxRate.value=String(p.taxRate??(p.cat==="Obbligazioni"?0.125:0.26));posNote.value=p.note||""}syncPositionFields();applyAdvancedEditState();document.getElementById("posModal").classList.add("show")}
+function openTransaction(positionId=null,type=null,closePosition=false){txContext={positionId,forcedType:type,closePosition};document.getElementById("txForm").reset();txQty.value=0;txPrice.value=0;txCommission.value=0;txAmount.value=0;txDate.value=new Date().toISOString().slice(0,10);txTimestamp.value=new Date().toISOString();populateAssetOptions();if(type)txType.value=type;if(positionId){txAsset.value=positionId;txAsset.disabled=true;txType.disabled=!!type;}else{txAsset.disabled=false;txType.disabled=false}syncTxFields();document.getElementById("txModal").classList.add("show")}
+function closeModal(id){document.getElementById(id).classList.remove("show");if(id==="txModal"){txAsset.disabled=false;txType.disabled=false;txContext={positionId:null,forcedType:null,closePosition:false}}}
+function applyAdvancedEditState(){const edit=!!posId.value,adv=!!advancedEdit.checked;posCat.disabled=edit&&!adv;posCode.disabled=edit&&!adv;posQty.disabled=!edit||!adv;posAvg.disabled=!edit||!adv;posTaxRate.disabled=posCat.value!=="Obbligazioni"||(edit&&!adv);posName.disabled=false;posPrice.disabled=false;posTarget.disabled=false}function syncPositionFields(){const cat=posCat.value;const crowd=cat==="Crowdfunding";const edit=!!posId.value;const adv=!!advancedEdit.checked;posDate.parentElement.style.display=["Obbligazioni","Crowdfunding"].includes(cat)?"block":"none";posRateWrap.style.display="none";posTargetWrap.style.display=["Azioni","Crypto","ETF"].includes(cat)?"block":"none";posQtyWrap.style.display=edit&&adv&&!crowd?"block":"none";posAvgWrap.style.display=edit&&adv&&!crowd?"block":"none";posCapitalWrap.style.display=crowd?"block":"none";posPlatformWrap.style.display=crowd?"block":"none";posPrice.parentElement.style.display=crowd?"none":"block";posCodeWrap.style.display=crowd?"none":"block";posCommissionWrap.style.display="none";posTaxRateWrap.style.display=cat==="Obbligazioni"?"block":"none";applyAdvancedEditState()}function syncTxFields(){
+  const type=txType.value;
+  const p=db.positions.find(x=>x.id===txAsset.value);
+  const cat=p?.cat;
+  const trade=["Acquisto","Vendita"].includes(type);
+  const bondRefund=type==="Rimborso"&&cat==="Obbligazioni";
+  const crowdRefund=type==="Rimborso"&&cat==="Crowdfunding";
+  const income=["Cedola","Dividendo"].includes(type);
+
+  // Quantity: only trades and bond refunds use quantity. Bond refund is always
+  // the entire residual quantity and therefore read-only.
+  txQty.parentElement.style.display=(trade||bondRefund)&&cat!=="Crowdfunding"?"block":"none";
+  // Price is needed for trades and bond refunds. Income/crowdfunding refunds
+  // are entered directly as an amount.
+  txPrice.parentElement.style.display=(trade||bondRefund)&&cat!=="Crowdfunding"?"block":"none";
+  txCommission.parentElement.style.display=(trade||bondRefund)&&cat!=="Crowdfunding"?"block":"none";
+
+  txAmount.readOnly=trade||bondRefund;
+  txAmount.classList.toggle("calc-field",trade||bondRefund);
+
+  if(bondRefund&&p){
+    const st=currentPositionState(p);
+    txQty.value=st.qty;
+    txQty.readOnly=true;
+    txQty.classList.add("readonly-field");
+  }else if(txContext.closePosition&&type==="Vendita"&&p){
+    const st=currentPositionState(p);
+    txQty.value=st.qty;
+    txQty.readOnly=true;
+    txQty.classList.add("readonly-field");
+  }else{
+    txQty.readOnly=false;
+    txQty.classList.remove("readonly-field");
+  }
+
+  if(crowdRefund||income){
+    txQty.parentElement.style.display="none";
+    txPrice.parentElement.style.display="none";
+    txCommission.parentElement.style.display="none";
+    txAmount.readOnly=false;
+    txAmount.classList.remove("calc-field");
+    if(crowdRefund&&p){
+      const st=currentPositionState(p);
+      txAmount.value=Math.max(0,Number(st.cost)||0).toFixed(2);
+    }
+  }
+  calculateTxAmount();
+}
+function calculateTxAmount(){
+  const type=txType.value;
+  const q=+txQty.value||0, pr=+txPrice.value||0, comm=+txCommission.value||0;
+  if(["Acquisto","Vendita"].includes(type)){
+    txAmount.value=(q*pr+(type==="Acquisto"?comm:-comm)).toFixed(2);
+  }else if(type==="Rimborso"&&txQty.parentElement.style.display!=="none"){
+    // Bond redemption: residual quantity × user price − commission.
+    txAmount.value=Math.max(0,q*pr-comm).toFixed(2);
+  }
+}
+function populateAssetOptions(){const sel=document.getElementById("txAsset"),old=txContext.positionId||sel.value,type=txContext.forcedType||txType.value;let allowed;if(type==="Cedola"||type==="Rimborso")allowed=["Obbligazioni","Crowdfunding"];else if(type==="Dividendo")allowed=["Azioni","ETF"];else if(type==="Acquisto"||type==="Vendita")allowed=["Azioni","ETF","Obbligazioni","Crypto"];else allowed=[];const list=db.positions.filter(p=>allowed.includes(p.cat));sel.innerHTML='<option value="">Seleziona...</option>'+list.map(p=>{const label=(p.code||p.name)+" — "+p.name+" ["+p.cat+"]";return `<option value="${esc(p.id)}">${esc(label)}</option>`}).join("");if([...sel.options].some(o=>o.value===old))sel.value=old}
+posCat.addEventListener("change",syncPositionFields);advancedEdit.addEventListener("change",()=>{syncPositionFields();applyAdvancedEditState();});txType.addEventListener("change",()=>{populateAssetOptions();syncTxFields()});txAsset.addEventListener("change",syncTxFields);[txQty,txPrice,txCommission].forEach(el=>el.addEventListener("input",calculateTxAmount));
+
+document.getElementById("posForm").addEventListener("submit",async e=>{e.preventDefault();const id=posId.value||crypto.randomUUID(),editing=!!posId.value,adv=!!advancedEdit.checked,cat=posCat.value,code=posCode.value.trim().toUpperCase();if(editing&&!adv){const old=db.positions.find(x=>x.id===id);if(old){posCat.value=old.cat;posCode.value=old.code||""}}const finalCat=posCat.value,finalCode=posCode.value.trim().toUpperCase();if(finalCode){const duplicate=db.positions.find(x=>x.id!==id&&String(x.code||"").trim().toUpperCase()===finalCode);if(duplicate){alert("Ticker / ISIN già utilizzato da un'altra posizione.");return}}const oldForEdit=editing?db.positions.find(x=>x.id===id):null;const p={id,name:posName.value.trim(),cat:finalCat,code:finalCode,platform:posPlatform.value.trim(),qty:editing&&adv?(+posQty.value||0):(oldForEdit?.qty||0),avg:editing&&adv?(+posAvg.value||0):(oldForEdit?.avg||0),initialCommission:oldForEdit?.initialCommission||0,initialCapital:+posCapital.value||0,price:+posPrice.value||0,date:posDate.value,rate:+posRate.value||0,target:+posTarget.value||0,note:posNote.value||"",taxRate:finalCat==="Obbligazioni"?(+posTaxRate.value||0.125):undefined};if(p.cat==="Crowdfunding"){p.qty=0;p.avg=0}const i=db.positions.findIndex(x=>x.id===id);if(i>=0)db.positions[i]={...db.positions[i],...p};else db.positions.push(p);await persist();closeModal("posModal");render()});
+document.getElementById("txForm").addEventListener("submit",async e=>{e.preventDefault();const type=txType.value;const p=db.positions.find(x=>x.id===txAsset.value);if(["Acquisto","Vendita","Rimborso","Cedola","Dividendo"].includes(type)&&!p){alert("Seleziona uno strumento valido.");return}if(type==="Vendita"&&p.cat==="Crowdfunding"){alert("Il crowdfunding non può essere venduto: usa Rimborso.");return}if(type==="Acquisto"&&p.cat==="Crowdfunding"){alert("Il crowdfunding si gestisce dalla posizione e dai proventi/rimborsi.");return}const q=+txQty.value||0;if(type==="Vendita"&&q>(currentPositionState(p).qty+1e-9)){alert("Quantità superiore a quella disponibile.");return}if(type==="Vendita"&&q<=0){alert("La quantità da vendere deve essere maggiore di zero.");return}
+if(type==="Rimborso"&&p.cat==="Obbligazioni"){
+  const residual=currentPositionState(p).qty;
+  if(Math.abs(q-residual)>1e-9){alert("Per il rimborso dell'obbligazione la quantità deve corrispondere automaticamente alla quantità residua.");return}
+  if((+txAmount.value||0)<0){alert("L'importo del rimborso non può essere negativo.");return}
+}
+if(["Cedola","Dividendo"].includes(type)&&(+txAmount.value||0)<=0){alert("Inserisci un importo valido.");return}
+if(type==="Rimborso"&&p.cat==="Crowdfunding"&&(+txAmount.value||0)<=0){alert("Inserisci un importo valido.");return}
+const amount=+txAmount.value||0;const timestamp=txTimestamp.value||new Date().toISOString();db.transactions.push({id:crypto.randomUUID(),date:txDate.value,type,asset:p?.id||"",qty:q,price:+txPrice.value||0,commission:+txCommission.value||0,amount,note:txNote.value||"",timestamp});await persist();closeModal("txModal");render()});
+async function delPos(id){if(!confirm("Eliminare la posizione?"))return;db.positions=db.positions.filter(x=>x.id!==id);await persist();render()}
+async function delTx(id){if(!confirm("Eliminare il movimento?"))return;db.transactions=db.transactions.filter(x=>x.id!==id);await persist();render()}
+function taxRate(p,year){if(p.cat==="Crypto")return year>=2026?0.33:0.26;if(p.cat==="Azioni")return 0.26;if(p.cat==="ETF")return 0.26;if(p.cat==="Obbligazioni")return Number(p.taxRate)||0.125;if(p.cat==="Crowdfunding")return 0.26;return 0}function incomeTaxRate(p,type,year){if(type==="Cedola"&&p.cat==="Obbligazioni")return taxRate(p,year);if(type==="Dividendo"&&["Azioni","ETF"].includes(p.cat))return 0.26;if(type==="Cedola"&&p.cat==="Crowdfunding")return 0.26;return 0}
+function currentPositionState(p){let qty=Number(p.qty)||0,cost=p.cat==="Crowdfunding"?(Number(p.initialCapital)||0):(Number(p.qty)||0)*(Number(p.avg)||0)+(Number(p.initialCommission)||0);let realized=0,realizedByYear={},proventi=0,proventiByYear={};const tx=[...db.transactions].filter(t=>t.asset===p.id||t.asset===p.code||t.asset===p.name).sort((a,b)=>String(a.timestamp||a.date).localeCompare(String(b.timestamp||b.date))||String(a.id).localeCompare(String(b.id)));for(const t of tx){const q=Number(t.qty)||0,pr=Number(t.price)||0,comm=Number(t.commission)||0,amount=Number(t.amount)||0,y=new Date(t.date).getFullYear();if(t.type==="Acquisto"){if(q>0&&qty<=0){cost=0;qty=0}cost+=q*pr+comm;qty+=q}else if(t.type==="Vendita"){if(q>qty+1e-9)continue;const avg=qty?cost/qty:0,saleNet=amount||Math.max(0,q*pr-comm),pl=saleNet-q*avg;realized+=pl;realizedByYear[y]=(realizedByYear[y]||0)+pl;cost=Math.max(0,cost-q*avg);qty=Math.max(0,qty-q);if(qty===0)cost=0}else if(t.type==="Rimborso"){if(p.cat==="Crowdfunding"){const principal=Math.min(Math.max(0,amount),Math.max(0,cost)),interest=Math.max(0,amount-principal);cost=Math.max(0,cost-principal);proventi+=interest;proventiByYear[y]=(proventiByYear[y]||0)+interest}else if(q>0){if(q>qty+1e-9)continue;const avg=qty?cost/qty:0,saleNet=amount||Math.max(0,q*pr-comm),pl=saleNet-q*avg;realized+=pl;realizedByYear[y]=(realizedByYear[y]||0)+pl;cost=Math.max(0,cost-q*avg);qty=Math.max(0,qty-q);if(qty===0)cost=0}}else if(["Cedola","Dividendo"].includes(t.type)){proventi+=amount;proventiByYear[y]=(proventiByYear[y]||0)+amount}}const avg=qty?cost/qty:0;return{qty,cost,avg,realized,realizedByYear,proventi,proventiByYear}}
+function calcTaxYear(year){const firstYear=Math.min(year,...db.transactions.map(t=>new Date(t.date).getFullYear()).filter(Number.isFinite));let carryByRate={};const annual=[];for(let y=firstYear;y<=year;y++){const buckets={};let income=0,incomeTax=0;for(const p of db.positions){const st=currentPositionState(p),gain=st.realizedByYear[y]||0,rate=taxRate(p,y),key=String(rate);if(!buckets[key])buckets[key]={rate,gain:0,loss:0};if(gain>=0)buckets[key].gain+=gain;else buckets[key].loss+=-gain;for(const t of db.transactions.filter(t=>(t.asset===p.id||t.asset===p.code||t.asset===p.name)&&new Date(t.date).getFullYear()===y)){if(["Cedola","Dividendo"].includes(t.type)){const a=Number(t.amount)||0,r=incomeTaxRate(p,t.type,y);income+=a;incomeTax+=a*r}}}let gains=0,losses=0,taxable=0,due=0,carryEnd={};for(const [key,b] of Object.entries(buckets)){const prior=Number(carryByRate[key])||0;const available=prior+b.loss;const used=Math.min(available,b.gain);const net=Math.max(0,b.gain-used);gains+=b.gain;losses+=b.loss;taxable+=net;due+=net*b.rate;carryEnd[key]=Math.max(0,available-used)}carryByRate=carryEnd;annual.push({year:y,gains,losses,taxable,due,income,incomeTax,carry:Object.values(carryByRate).reduce((a,v)=>a+v,0)})}const a=annual.find(x=>x.year===year)||{gains:0,losses:0,taxable:0,due:0,income:0,incomeTax:0,carry:0};return{...a,due:a.due+a.incomeTax,capitalDue:a.due,incomeTax:a.incomeTax,details:db.positions.map(p=>{const st=currentPositionState(p),g=st.realizedByYear[year]||0;return g?{name:p.name,gain:g,rate:taxRate(p,year)}:null}).filter(Boolean)}}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function closeActionMenus(){document.querySelectorAll('.action-menu.open').forEach(m=>{m.classList.remove('open');m.parentElement?.classList.remove('menu-host-open')});document.querySelectorAll('.action-menu-list.action-menu-portal').forEach(list=>{const hostId=list.dataset.host;const host=hostId&&document.getElementById(hostId);if(host){list.classList.remove('action-menu-portal');host.appendChild(list)}else list.remove()})}
+function openActionMenu(btn){const menu=btn.parentElement;const wasOpen=menu.classList.contains('open');closeActionMenus();if(wasOpen){event.stopPropagation();return}menu.classList.add('open');menu.parentElement?.classList.add('menu-host-open');const list=menu.querySelector('.action-menu-list');if(!list)return;const hostId='am_'+Math.random().toString(36).slice(2);menu.id=hostId;list.dataset.host=hostId;document.body.appendChild(list);list.classList.add('action-menu-portal');const r=btn.getBoundingClientRect();const gap=6;const width=Math.max(180,list.offsetWidth||180);const h=list.offsetHeight||180;let left=Math.min(r.right-width,window.innerWidth-8);left=Math.max(8,left);let top=r.bottom+gap;if(top+h>window.innerHeight-8)top=r.top-gap-h;if(top<8)top=Math.min(r.bottom+gap,window.innerHeight-h-8);left=Math.max(8,Math.min(left,window.innerWidth-width-8));list.style.left=`${left}px`;list.style.top=`${Math.max(8,top)}px`;event.stopPropagation()}function actionMenu(p,st){const active=p.cat==="Crowdfunding"?st.cost>0:st.qty>0;const hasTx=db.transactions.some(t=>t.asset===p.id||t.asset===p.code||t.asset===p.name);const pending=!active&&!hasTx;const items=[];if(p.cat!=="Crowdfunding"&&(!active||["Azioni","ETF","Obbligazioni","Crypto"].includes(p.cat)))items.push(`<button onclick="openTransaction('${p.id}','Acquisto')">Acquista</button>`);if(active){if(["Azioni","ETF","Obbligazioni","Crypto"].includes(p.cat))items.push(`<button onclick="openTransaction('${p.id}','Vendita')">Vendi</button>`);if(["Azioni","ETF"].includes(p.cat))items.push(`<button onclick="openTransaction('${p.id}','Dividendo')">Dividendo</button>`);if(p.cat==="Obbligazioni"){items.push(`<button onclick="openTransaction('${p.id}','Cedola')">Cedola</button>`);items.push(`<button onclick="openTransaction('${p.id}','Rimborso')">Rimborso</button>`)}if(p.cat==="Crowdfunding"){items.push(`<button onclick="openTransaction('${p.id}','Cedola')">Cedola / Interesse</button>`);items.push(`<button onclick="openTransaction('${p.id}','Rimborso')">Rimborso</button>`)}if(["Azioni","ETF","Obbligazioni","Crypto"].includes(p.cat))items.push(`<button onclick="openTransaction('${p.id}','Vendita',true)">Chiudi posizione</button>`)}items.push(`<button onclick="openPosition('${p.id}')">Modifica</button>`);if(pending)items.push(`<button class="danger" onclick="delPos('${p.id}')">Elimina</button>`);if(!items.length)return "—";return `<div class="action-menu"><button class="secondary" onclick="openActionMenu(this)">Azioni ▾</button><div class="action-menu-list">${items.join("")}</div></div>`}
+function render(){const states=new Map(db.positions.map(p=>[p.id,currentPositionState(p)]));let total=0,invested=0,cash=0,income=0,crowd=0,realized=0;for(const p of db.positions){const st=states.get(p.id),value=p.cat==="Crowdfunding"?Math.max(0,st.cost):st.qty*(Number(p.price)||0);total+=value;invested+=st.cost;if(p.cat==="Liquidità")cash+=value;if(p.cat==="Crowdfunding")crowd+=value;income+=st.proventi;realized+=st.realized}document.getElementById("total").textContent=eur(total);document.getElementById("invested").textContent=eur(invested);document.getElementById("pl").textContent=(total-invested>=0?"+":"")+eur(total-invested);document.getElementById("plpct").textContent=(invested?(total-invested)/invested*100:0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";document.getElementById("cash").textContent=eur(cash);document.getElementById("npos").textContent=db.positions.filter(p=>states.get(p.id).qty>0||p.cat==="Crowdfunding"&&states.get(p.id).cost>0).length;document.getElementById("netflow").textContent=eur(db.transactions.reduce((s,t)=>s+(t.type==="Versamento"?1:t.type==="Prelievo"?-1:0)*(Number(t.amount)||0),0));document.getElementById("income").textContent=eur(income);document.getElementById("crowd").textContent=eur(crowd);
+const search=(document.getElementById("positionSearch")?.value||"").toLowerCase().trim(),showClosed=document.getElementById("showClosed")?.checked||false;let positions=db.positions.filter(p=>{const st=states.get(p.id),hasTx=db.transactions.some(t=>t.asset===p.id||t.asset===p.code||t.asset===p.name),active=st.qty>0||(p.cat==="Crowdfunding"&&st.cost>0),pending=!active&&!hasTx;return (showClosed||active||pending)&&(!search||[p.name,p.code,p.cat].join(" ").toLowerCase().includes(search))}).sort((a,b)=>{const ta=Number(a.target)||0,tb=Number(b.target)||0;if(tb!==ta)return tb-ta;const ka=(a.code||a.name||"").toLocaleUpperCase("it-IT"),kb=(b.code||b.name||"").toLocaleUpperCase("it-IT");return ka.localeCompare(kb,"it-IT")});const renderPos=p=>{const st=states.get(p.id),v=p.cat==="Crowdfunding"?Math.max(0,st.cost):st.qty*(Number(p.price)||0),invest=st.cost,unreal=p.cat==="Crowdfunding"?0:v-invest,year=new Date().getFullYear(),rate=taxRate(p,year),taxPrev=Math.max(0,unreal)*rate,netPrev=unreal-taxPrev,realizedNet=st.realized>=0?st.realized*(1-rate):st.realized;const hasTx=db.transactions.some(t=>t.asset===p.id||t.asset===p.code||t.asset===p.name),active=st.qty>0||(p.cat==="Crowdfunding"&&st.cost>0),pending=!active&&!hasTx;return `<tr class="${pending?"pending":(st.qty<=0&&p.cat!=="Crowdfunding"?"closed":"")}"><td><b>${esc(p.name)}</b><br><small>${esc(p.code||"")}</small></td><td>${esc(p.cat)}</td><td>${p.cat==="Crowdfunding"?"—":qty(st.qty)}</td><td>${p.cat==="Crowdfunding"?"—":eur(st.avg)}</td><td>${p.cat==="Crowdfunding"?"—":eur(p.price)}</td><td>${eur(invest)}</td><td>${eur(v)}</td><td class="${unreal>=0?"good":"bad"}">${unreal>=0?"+":""}${eur(unreal)}</td><td class="${netPrev>=0?"good":"bad"}">${netPrev>=0?"+":""}${eur(netPrev)}<br><small>imp. ${eur(taxPrev)}</small></td><td class="${realizedNet>=0?"good":"bad"}">${realizedNet>=0?"+":""}${eur(realizedNet)}</td><td>${["Azioni","Crypto","ETF"].includes(p.cat)?pct(p.target):"—"}</td><td>${active?"🟢 Attiva":(pending?"🟠 Da attivare":"⚪ Chiusa")}</td><td>${actionMenu(p,st)}</td></tr>`};document.getElementById("positionsTable").innerHTML=positions.map(renderPos).join("")||'<tr><td colspan="13" class="empty">Nessuna posizione.</td></tr>';document.getElementById("topPositions").innerHTML=positions.slice(0,5).map(p=>{const st=states.get(p.id),v=p.cat==="Crowdfunding"?Math.max(0,st.cost):st.qty*(Number(p.price)||0),unreal=p.cat==="Crowdfunding"?0:v-st.cost,rate=taxRate(p,new Date().getFullYear()),taxPrev=Math.max(0,unreal)*rate,netPrev=unreal-taxPrev;return `<tr><td><b>${esc(p.name)}</b><br><small>${esc(p.code||"")}</small></td><td>${esc(p.cat)}</td><td>${p.cat==="Crowdfunding"?"—":qty(st.qty)}</td><td>${p.cat==="Crowdfunding"?"—":eur(st.avg)}</td><td>${p.cat==="Crowdfunding"?"—":eur(p.price)}</td><td>${eur(st.cost)}</td><td>${eur(v)}</td><td class="${unreal>=0?"good":"bad"}">${unreal>=0?"+":""}${eur(unreal)}</td><td class="${netPrev>=0?"good":"bad"}">${netPrev>=0?"+":""}${eur(netPrev)}</td><td class="${st.realized>=0?"good":"bad"}">${st.realized>=0?"+":""}${eur(st.realized)}</td></tr>`}).join("")||'<tr><td colspan="10" class="empty">Nessuna posizione.</td></tr>';
+const tx=[...db.transactions].sort((a,b)=>String(b.timestamp||b.date).localeCompare(String(a.timestamp||a.date))||String(b.date).localeCompare(String(a.date)));document.getElementById("transactionsTable").innerHTML=tx.map(t=>{const p=db.positions.find(x=>x.id===t.asset||x.code===t.asset||x.name===t.asset);return `<tr><td>${esc(t.date)}<br><small>${t.timestamp?new Date(t.timestamp).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}):""}</small></td><td>${esc(t.type)}</td><td>${esc(p?.name||t.asset||"—")}</td><td>${qty(t.qty||0)}</td><td>${eur(t.price)}</td><td>${eur(t.amount)}</td><td><button class="danger" onclick="delTx('${t.id}')">×</button></td></tr>`}).join("")||'<tr><td colspan="7" class="empty">Nessun movimento.</td></tr>';
+const cats={};db.positions.forEach(p=>{const st=states.get(p.id),v=p.cat==="Crowdfunding"?Math.max(0,st.cost):st.qty*(Number(p.price)||0);cats[p.cat]=(cats[p.cat]||0)+v});document.getElementById("allocation").innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const w=total?v/total*100:0;return `<div class="allocrow"><span>${esc(k)}</span><div class="bar"><i style="width:${w}%"></i></div><b>${pct(w)}</b></div>`}).join("")||'<div class="empty">Nessuna posizione.</div>';const mats=db.positions.filter(p=>p.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));document.getElementById("maturities").innerHTML=mats.map(p=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee"><span>${esc(p.name)}</span><b>${esc(p.date)}</b></div>`).join("")||"Nessuna scadenza registrata.";renderHistory();renderTax()}
+// Dividendi e Cedole sono tipi di movimento distinti; i riepiloghi possono aggregare i proventi.
+function renderHistory(){const years=[...new Set([new Date().getFullYear(),...db.transactions.map(t=>new Date(t.date).getFullYear())])].sort((a,b)=>b-a),select=yearSelect,old=Number(select.value);select.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join("");if(years.includes(old))select.value=old;else select.value=years[0];const y=Number(select.value);let r=0,inc=0,dep=0,wit=0;for(const p of db.positions){r+=currentPositionState(p).realizedByYear[y]||0}for(const t of db.transactions){if(new Date(t.date).getFullYear()!==y)continue;if(["Cedola","Dividendo"].includes(t.type))inc+=+t.amount||0;if(t.type==="Versamento")dep+=+t.amount||0;if(t.type==="Prelievo")wit+=+t.amount||0}const fiscal=calcTaxYear(y);const rNet=(r>=0?r-fiscal.capitalDue:r);yearPL.textContent=(rNet>=0?"+":"")+eur(rNet);yearIncome.textContent=eur(inc);yearDeposits.textContent=eur(dep);yearWithdrawals.textContent=eur(wit);annualTable.innerHTML=years.map(yr=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e6e9ef"><span>${yr}</span><b>${eur(Object.values(db.positions).reduce((s,p)=>s+(currentPositionState(p).realizedByYear[yr]||0),0))}</b></div>`).join("")}
+function renderTax(){const years=[...new Set([new Date().getFullYear(),...db.transactions.map(t=>new Date(t.date).getFullYear())])].sort((a,b)=>b-a),sel=taxYearSelect,old=Number(sel.value);sel.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join("");if(years.includes(old))sel.value=old;else sel.value=years[0];const y=Number(sel.value),t=calcTaxYear(y);taxPL.textContent=(t.gains-t.losses>=0?"+":"")+eur(t.gains-t.losses);taxLoss.textContent=eur(t.losses);taxBase.textContent=eur(t.taxable);taxDue.textContent=eur(t.due);taxTable.innerHTML=t.details.map(d=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e6e9ef"><span>${esc(d.name)}</span><b>${eur(d.gain)} · ${(d.rate*100).toLocaleString("it-IT")} %</b></div>`).join("")||'<div class="empty">Nessun dato fiscale per l’anno selezionato.</div>';taxTable.innerHTML+=`<div style="margin-top:12px;font-size:13px;color:#475467">Imposta su proventi: <b>${eur(t.incomeTax)}</b> · Minusvalenze residue riportabili: <b>${eur(t.carry)}</b></div>`}
+document.addEventListener("click",e=>{document.querySelectorAll(".action-menu.open").forEach(m=>{const list=m.querySelector(".action-menu-list");if(!m.contains(e.target)&&!(list&&list.contains(e.target))){closeActionMenus()}})});
+yearSelect.addEventListener("change",render);taxYearSelect.addEventListener("change",render);positionSearch.addEventListener("input",render);showClosed.addEventListener("change",render);
+async function exportBackup(){const pin=sessionStorage.getItem("pv_pin");if(!pin){alert("Vault bloccato.");return}const payload=await encrypt(db,pin),blob=new Blob([payload],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="portfolio-vault-backup.pvault";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+async function importBackup(e){const f=e.target.files[0];if(!f)return;const text=await f.text(),pin=prompt("Inserisci il PIN del backup");if(!pin){e.target.value="";return}try{db=normalizeDb(await decrypt(text,pin));await persist();render();alert("Backup importato.")}catch(err){alert("Backup non valido o PIN errato.")}e.target.value=""}
+
+syncPositionFields();syncTxFields();
+</script>
+</body>
+</html>
